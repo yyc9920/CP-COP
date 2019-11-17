@@ -6,6 +6,8 @@
 #define ArrayLenth  40    //times of collection
 int pHArray[ArrayLenth];   //Store the average value of the sensor feedback
 int pHArrayIndex=0; 
+float pHValue,voltage;
+int droptime = 0;
 
 void setup() {
   pinMode(LED,OUTPUT);
@@ -16,25 +18,37 @@ void setup() {
 void loop() {
   static unsigned long samplingTime = millis();
   static unsigned long printTime = millis();
-  static float pHValue,voltage;
 
-  if(millis()-samplingTime > samplingInterval)
-  {
-    pHArray[pHArrayIndex++]=analogRead(SensorPin);
-    if(pHArrayIndex==ArrayLenth)pHArrayIndex=0;
-    voltage = avergearray(pHArray, ArrayLenth)*5.0/1024; 
-    pHValue = 3.5*voltage+Offset;
-    samplingTime=millis();
+   pHArray[pHArrayIndex++]=analogRead(SensorPin);
+   if(pHArrayIndex==ArrayLenth)pHArrayIndex=0;
+   voltage = avergearray(pHArray, ArrayLenth)*5.0/1024; 
+   pHValue = 3.5*voltage+Offset;
+   samplingTime=millis();
+
+   Serial.print("Voltage:");
+   Serial.print(voltage,2); 
+   Serial.print("    pH value: ");
+   Serial.println(pHValue,2);
+   digitalWrite(LED,digitalRead(LED)^1);
+   printTime=millis();
+  
+  delay(1000);
+
+  droptime++;
+
+  if(pHValue >= 8.0){
+    if(droptime%5 == 0){  //용액 투여 후 pH 변화를 확인하는 여유 시간 5초를 두고 pH용액을 투여. 
+                          //여유시간이 없을 경우 변화를 감지하는 시간 부족으로 필요 이상의 용액을 투여할 수 있으므로
+    Serial.println("Dropping pH- solution for 1sec");
+    }
   }
-  if(millis() - printTime > printInterval)//Every 800 milliseconds, print a numerical, convert the state of the LED indicator 
-  {
-    Serial.print("Voltage:");
-    Serial.print(voltage,2); 
-    Serial.print("    pH value: ");
-    Serial.println(pHValue,2);
-    digitalWrite(LED,digitalRead(LED)^1);
-    printTime=millis();
+
+  if(pHValue < 6.0){
+    if(droptime%5 == 0){
+    Serial.println("Dropping pH+ solution for 1sec");
+    }
   }
+  if(droptime>=10) droptime = 0;
 }
 
 double avergearray(int* arr, int number)
