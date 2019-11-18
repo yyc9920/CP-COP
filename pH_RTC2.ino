@@ -96,9 +96,10 @@ void setup() {
 void loop() {
   static unsigned long samplingTime = millis();
   static unsigned long printTime = millis();
-    int i;
+    int i = 0;
     // If something is coming in on the serial line, it's
     // a time correction so set the clock accordingly.
+  while(1){
     if (Serial.available()) {
         GetDateStuff(Year, Month, Date, DoW, Hour, Minute, Second);
  
@@ -113,26 +114,23 @@ void loop() {
         Clock.setMinute(Minute);
         Clock.setSecond(Second);
          
-        // Give time at next five seconds
-        for (i=0; i<k; i++){
-            delay(1000);
-            Serial.print(Clock.getYear(), DEC);
-            Serial.print("-");
-            Serial.print(Clock.getMonth(Century), DEC);
-            Serial.print("-");
-            Serial.print(Clock.getDate(), DEC);
-            Serial.print(" ");
-            Serial.print(Clock.getHour(h12, PM), DEC); //24-hr
-            Serial.print(":");
-            Serial.print(Clock.getMinute(), DEC);
-            Serial.print(":");
-            Serial.println(Clock.getSecond(), DEC);
-            if(i == k-1){
-              Serial.println("feeding fish");
-              delay(1000);
-              Serial.println("end");
-              i = 0;
-            }
+        delay(1000);
+        Serial.print(Clock.getYear(), DEC);
+        Serial.print("-");
+        Serial.print(Clock.getMonth(Century), DEC);
+        Serial.print("-");
+        Serial.print(Clock.getDate(), DEC);
+        Serial.print(" ");
+        Serial.print(Clock.getHour(h12, PM), DEC); //24-hr
+        Serial.print(":");
+        Serial.print(Clock.getMinute(), DEC);
+        Serial.print(":");
+        Serial.println(Clock.getSecond(), DEC);
+        if(i == k-1){
+          Serial.println("feeding fish");
+          delay(1000);
+          Serial.println("end");
+          i = 0;
         }
     }
 
@@ -166,6 +164,7 @@ void loop() {
     }
   }
   if(droptime>=10) droptime = 0;
+  }
 }
 
 double avergearray(int* arr, int number)
