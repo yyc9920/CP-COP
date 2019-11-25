@@ -132,6 +132,7 @@ void loop() {
   static unsigned long samplingTime = millis();
   static unsigned long printTime = millis();
   int cds;
+  int feed_L = 0;
 
   while(1){
     cds = analogRead(A1);
@@ -155,7 +156,7 @@ void loop() {
    digitalWrite(LED,digitalRead(LED)^1);
    printTime=millis();
   
-  delay(1000);
+  delay(925);
 
   droptime++;
   it++;
@@ -178,6 +179,7 @@ void loop() {
   Hour = Clock.getHour(h12, PM);
   Minute = Clock.getMinute();
   Second = Clock.getSecond();
+  Serial.print("Time-");
   Serial.print(Hour); //24-hr
             Serial.print(":");
             Serial.print(Minute);
@@ -187,16 +189,27 @@ void loop() {
       if (GS_flag) {
         GS_flag = false;
       }
-        if(it == feedtime){
+        if(feedtime){
+        if(it >= feedtime){
           Serial.println("feeding fish");
           digitalWrite(R_feed, HIGH);
-          delay(4785);
-          Serial.println("end");
-          digitalWrite(R_feed, LOW);
           it = 0;
         }
+        }
+        if(digitalRead(R_feed) == HIGH)
+        {
+          feed_L++;
+        }
+        if(feed_L == 5){
+          Serial.println("end");
+          digitalWrite(R_feed, LOW);
+          feed_L = 0;
+          it = 0;
+        }
+        Serial.print(feed_L);
+        Serial.print(":");
         Serial.print(it);
-        Serial.print(" : ");
+        Serial.print(":");
         Serial.println(feedtime);
   
   Serial.print("Requesting temperatures...");  
