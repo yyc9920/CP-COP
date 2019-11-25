@@ -37,7 +37,7 @@ float pHValue,voltage;
 int droptime = 0;
 bool getDateflag = true;
 bool GS_flag = false;
-int it = 0;
+unsigned long it = 0;
 
 void GetDateStuff() {
     // Call this if you notice something coming in on
@@ -133,6 +133,12 @@ void loop() {
   static unsigned long printTime = millis();
   int cds;
   int feed_L = 0;
+  int Ht=0;
+  int Mt=0;
+  int St=0;
+  int sum1=0;
+  int sum2=0;
+  int sum3=0;
 
   while(1){
     cds = analogRead(A1);
@@ -159,7 +165,6 @@ void loop() {
   delay(925);
 
   droptime++;
-  it++;
 
   if(pHValue >= 8.0){
     if(droptime%5 == 0){  //용액 투여 후 pH 변화를 확인하는 여유 시간 5초를 두고 pH용액을 투여. 
@@ -188,12 +193,37 @@ void loop() {
   
       if (GS_flag) {
         GS_flag = false;
+        Ht = Hour;
+        Mt = Minute;
+        St = Second;
+        it = 0;
       }
+      if(St){
+      if((Ht-Hour)>=0){
+        sum1 = (Ht-Hour)*3600;
+      } else {
+        sum1 = (Hour-Ht)*3600;
+      }
+      if((Mt-Minute)>=0){
+        sum2 = (Mt-Minute)*60;
+      } else {
+        sum2 = (Minute-Mt)*60;
+      }
+      if((St-Second)>=0){
+        sum3 = (St-Second);
+      } else {
+        sum3 = (Second-St);
+      }
+      }
+      it = sum1 + sum2 + sum3;
         if(feedtime){
         if(it >= feedtime){
           Serial.println("feeding fish");
           digitalWrite(R_feed, HIGH);
           it = 0;
+          Ht = Hour;
+          Mt = Minute;
+          St = Second;
         }
         }
         if(digitalRead(R_feed) == HIGH)
