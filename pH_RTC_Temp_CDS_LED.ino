@@ -27,7 +27,11 @@ bool PM;
 #define SensorPin A0            //pH meter Analog output to Arduino Analog Input 0
 #define Offset 0.00            //deviation compensate 
 #define LED 13 
-#define R_feed 7
+#define R_feed  2
+#define R_sol_m  0
+#define R_sol_p  1
+#define R_LED   3
+#define PH_temp  0
 #define samplingInterval 20
 #define printInterval 800
 #define ArrayLenth  40    //times of collection 
@@ -104,6 +108,9 @@ void setup() {
 
     pinMode(LED,OUTPUT);
     pinMode(R_feed,OUTPUT);
+    pinMode(R_sol_m,OUTPUT);
+    pinMode(R_sol_p,OUTPUT);
+    pinMode(R_LED,OUTPUT);
     Serial.println("pH meter experiment!"); //Test the serial monitor 
  
   Serial.print(sensors.getDeviceCount(), DEC);   
@@ -145,10 +152,11 @@ void loop() {
     Serial.print("cds Sensor : ");
     Serial.println(cds);
 
-    if(cds>400)
+    if(cds>500)
     {
       Serial.println("LED ON");
-    }
+      digitalWrite(R_LED, HIGH);
+    } else digitalWrite(R_LED, LOW);
     pHArray[pHArrayIndex++]=analogRead(SensorPin);
    if(pHArrayIndex==ArrayLenth)pHArrayIndex=0;
    voltage = avergearray(pHArray, ArrayLenth)*5.0/1024; 
@@ -166,17 +174,21 @@ void loop() {
 
   droptime++;
 
-  if(pHValue >= 8.0){
-    if(droptime%5 == 0){  //용액 투여 후 pH 변화를 확인하는 여유 시간 5초를 두고 pH용액을 투여. 
+  if(PH_temp >= 8.0){
+    if(droptime%5 <= 1){  //용액 투여 후 pH 변화를 확인하는 여유 시간 5초를 두고 pH용액을 투여. 
                           //여유시간이 없을 경우 변화를 감지하는 시간 부족으로 필요 이상의 용액을 투여할 수 있으므로
-    Serial.println("Dropping pH- solution for 1sec");
+    Serial.println("PH- for 1sec");                      
+    digitalWrite(R_sol_m, HIGH);
     }
+    else digitalWrite(R_sol_m, LOW);
   }
 
-  if(pHValue < 6.0){
-    if(droptime%5 == 0){
-    Serial.println("Dropping pH+ solution for 1sec");
+  if(PH_temp < 6.0){
+    if(droptime%5 <= 1){
+      Serial.println("PH+ for 1sec");
+      digitalWrite(R_sol_p, HIGH);
     }
+    else digitalWrite(R_sol_p, LOW);
   }
   if(droptime>=10) droptime = 0;
 
