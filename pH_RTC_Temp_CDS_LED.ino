@@ -4,7 +4,7 @@
 #include <DallasTemperature.h>  
 #define ONE_WIRE_BUS 4 
 //라이브러리 추가.
-//필요한 라이브러리도 깃허브에 올려놓았음. 
+//필요한 라이브러리 깃허브에 올려놓았음. 
 
 DS3231 Clock;
 //1-wire 디바이스와 통신하기 위한 준비  
