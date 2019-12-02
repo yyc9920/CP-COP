@@ -3,6 +3,8 @@
 #include <OneWire.h>  
 #include <DallasTemperature.h>  
 #define ONE_WIRE_BUS 4 
+//라이브러리 추가.
+//필요한 라이브러리도 깃허브에 올려놓았음. 
 
 DS3231 Clock;
 //1-wire 디바이스와 통신하기 위한 준비  
@@ -24,6 +26,7 @@ bool Century=false;
 bool h12;
 bool PM;
 
+//릴레이, 센서 등 핀설정
 #define SensorPin A0            //pH meter Analog output to Arduino Analog Input 0
 #define Offset 0.00            //deviation compensate 
 #define LED 13 
@@ -52,12 +55,17 @@ void GetDateStuff() {
     char String_tmp[10];
     byte abc=0;
     
+    //급식 주기를 설정하는 부분
+    //예를 들어 시리얼창에 "a100t"라고 치면 100초에 한번씩 급식한다. 
+    //곱해주는 배수를 다르게 해주면 10000초에 한번씩으로 변경 가능. 
     if (Serial.available()) {
     if (Serial.read() == 'a') {
       it = 0;
       getDateflag = false;
     }
+    //시간주기를 설정하는 조건 판별. 앞에 'a'가 있을 때 시간주기를 받음. 
     }
+    //시리얼에 입력된 시간 주기를 읽어 문자열에 저장. 
     if (!getDateflag) {
       while (!GS_flag){
         if (Serial.available()) {
@@ -71,6 +79,8 @@ void GetDateStuff() {
         }
       }
 //      Serial.println(String_tmp);
+
+//위에서 받은 수를 정수값으로 변환해주는 부분. 배수를 바꿔주면 더 긴 시간주기 설정 가능. 
       T1 = (byte)String_tmp[0] -48;
       T2 = (byte)String_tmp[1] -48;
       T3 = (byte)String_tmp[2] -48;
@@ -148,10 +158,12 @@ void loop() {
   int sum3=0;
 
   while(1){
+//조도센서 값을 읽어온다. 
     cds = analogRead(A1);
     Serial.print("cds Sensor : ");
     Serial.println(cds);
 
+//어두워지면 LED ON
     if(cds>500)
     {
       Serial.println("LED ON");
@@ -162,6 +174,7 @@ void loop() {
    voltage = avergearray(pHArray, ArrayLenth)*5.0/1024; 
    pHValue = 3.5*voltage+Offset;
    samplingTime=millis();
+//pH센서 센싱하는 부분
 
    Serial.print("Voltage:");
    Serial.print(voltage,2); 
@@ -173,11 +186,12 @@ void loop() {
   delay(925);
 
   droptime++;
-
+//pH값을 8~6 사이로 유지. 
+//물고기 선택창에서 여기 조건값(PH_temp)을 조정해주면 됨. 
   if(PH_temp >= 8.0){
     if(droptime%5 <= 1){  //용액 투여 후 pH 변화를 확인하는 여유 시간 5초를 두고 pH용액을 투여. 
                           //여유시간이 없을 경우 변화를 감지하는 시간 부족으로 필요 이상의 용액을 투여할 수 있으므로
-    Serial.println("PH- for 1sec");                      
+    Serial.println("PH- for 2sec");                      
     digitalWrite(R_sol_m, HIGH);
     }
     else digitalWrite(R_sol_m, LOW);
@@ -185,7 +199,7 @@ void loop() {
 
   if(PH_temp < 6.0){
     if(droptime%5 <= 1){
-      Serial.println("PH+ for 1sec");
+      Serial.println("PH+ for 2sec");
       digitalWrite(R_sol_p, HIGH);
     }
     else digitalWrite(R_sol_p, LOW);
@@ -203,6 +217,7 @@ void loop() {
             Serial.print(":");
             Serial.println(Second);
   
+//급식시간을 리얼타임클락에 맞추기 위한 세팅
       if (GS_flag) {
         GS_flag = false;
         Ht = Hour;
@@ -228,6 +243,8 @@ void loop() {
       }
       }
       it = sum1 + sum2 + sum3;
+
+//설정한 급식시간이 되면 급식. 
         if(feedtime){
         if(it >= feedtime){
           Serial.println("feeding fish");
@@ -238,10 +255,12 @@ void loop() {
           St = Second;
         }
         }
+
         if(digitalRead(R_feed) == HIGH)
         {
           feed_L++;
         }
+//급식기를 한바퀴 돌림. 
         if(feed_L == 5){
           Serial.println("end");
           digitalWrite(R_feed, LOW);
