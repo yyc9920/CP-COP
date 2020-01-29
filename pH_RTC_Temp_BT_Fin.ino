@@ -34,8 +34,8 @@ OneWire oneWire(ONE_WIRE_BUS);
     
 // oneWire선언한 것을 sensors 선언시 참조함.  
 DallasTemperature sensors(&oneWire);  
-    
-//다비아스 주소를 저장할 배열 선언  
+
+//스 주소를 저장할 배열 선언  
 DeviceAddress insideThermometer;  
 
 byte DoW;
